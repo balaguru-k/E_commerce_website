@@ -2,13 +2,14 @@
 FROM node:18-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-# Using --legacy-peer-deps as seen in your Jenkins config
 RUN npm install --legacy-peer-deps
 COPY . .
-RUN npm run build
+# ⬇️ MAKE SURE THIS LINE IS PRESENT AND CORRECT ⬇️
+RUN npm run build 
 
 # Stage 2: Serve the application using Nginx
 FROM nginx:alpine
-COPY --from=build /app/build /usr/share/nginx/html
+# This is the line that failed because /app/build was missing
+COPY --from=build /app/build /usr/share/nginx/html 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
