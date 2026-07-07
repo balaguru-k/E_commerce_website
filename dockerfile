@@ -1,24 +1,14 @@
-# Build stage
+# Stage 1: Build the React application
 FROM node:18-alpine AS build
-
 WORKDIR /app
-
-# Copy package manifest(s) and install dependencies
-COPY package.json yarn.lock* package-lock.json* ./
+COPY package*.json ./
+# Using --legacy-peer-deps as seen in your Jenkins config
 RUN npm install --legacy-peer-deps
-
-# Copy source and build
 COPY . .
 RUN npm run build
 
-# Production stage
-FROM nginx:stable-alpine
-
-# Remove default nginx static assets
-RUN rm -rf /usr/share/nginx/html/*
-
-# Copy built app
-COPY --from=build /app/dist /usr/share/nginx/html
-
+# Stage 2: Serve the application using Nginx
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
